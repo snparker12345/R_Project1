@@ -10,11 +10,20 @@
 #Si mi variable a predecir es continua y no binaria --> Hay que pasarla a binaria
 # En principio nosotros tenemos 3 clases.
 
-data<-read.csv("/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/datos/data.csv")
+setwd("C:/Users/snpar/ML")
+getwd()
+data<-read.csv("data.csv")
+summary(data)
+datafr <- data.frame(data)
+filteredfr <- datafr[data$C_api != 'unknown',]
 
 #Partir los datos: test, train, validation.  ACUERDATE DE PONER LA SEMILLA
 
+set.seed(123)
+
+
 dim(data)
+
 
 
 
