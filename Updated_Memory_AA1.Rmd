@@ -1,0 +1,115 @@
+<!-- NOTES TO DEVELOP THE PROJECT: PABLO, SOPHIE, ALVARO 
+
+Here you can write important notes you think must be considered for others when continuing with the project. The code starts in the nearest '---' line.
+
+Basic sintax principles of R Markdown (cmd+click to go directly): https://rpubs.com/gustavomtzv/862622
+https://markdown.es/sintaxis-markdown/#parrafos
+
+SEE CONTINUE IN LINE 79
+-->
+
+---
+title: "GRUPO 6: MEMORIA AA1"
+date: "01/02/2024"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introducción
+En esta memoria se detallan los procesos y procedimientos empleados para la resolución de las diferentes cuestiones sobre la base de datos "Gender Gap in Spanish Wikipedia". 
+
+Primeramente es conveniente entender el problema a abordar.
+
+
+## Brecha de género en Wikipedia.
+Wikipedia es una enciclopedia de contenido libre que proyecta reunir todo el conocimiento humano. Se ubica en internet y se desarrolla gracias a voluntarios de todo el mundo; esto es, que la redactan y mantienen diversas personas en diferentes ubicaciones del globo. 
+
+Sabemos que la población mundial se encuentra equitativamente dividida entre hombres y mujeres, un una diferencia insignificante entre ambos grupos. Sin embargo, entre el 84 y el 91 por ciento de quienes editan la comunidad son varones, a pesar de que, como sabemos, son el 50% de la población mundial.
+
+En 2011 la Fundación Wikimedia, organización matriz de Wikipedia sin ánimo de lucro, realizó una encuesta y los resultados fueron verdaderamente significativos:
+
+<center>
+
+![Fundación Wikimedia:https://es.wikipedia.org/wiki/Fundaci%C3%B3n_Wikimedia](/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/img1.svg)
+
+</center>\
+
+Puede encontrar más información sobre la brecha de género en el siguiente enlace:
+https://es.wikipedia.org/wiki/Brecha_de_g%C3%A9nero_en_Wikipedia
+
+**Específicamente en nuestro problema trabajaremos con datos relativos a los editores de Wikipedia España.**
+
+
+# Datos
+La base de datos seleccionada para abordar el problema de disparidad de género en la redacción de Wikipedia España se puede encontrar el subsiguiente enlace: https://archive.ics.uci.edu/dataset/852/gender+gap+in+spanish+wp
+
+
+```{r lectura, warning=FALSE} 
+#Lectura de datos en csv
+data<-read.csv("/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/datos/data.csv")
+
+#Obtenemos la dimensión de la matriz de datos.
+dim(data)
+n<- dim(data)[1]  # Así nombraremos las filas
+p <- dim(data)[2] # Así nombraremos las columnas
+```
+
+```{r np, warning=FALSE} 
+n
+p
+```
+
+Por tanto, tenemos  $n=$```r n```observaciones y $p=$```r p```variables en la base de datos.
+
+
+```{r particion}
+
+#Semilla para que el ejercicio sea reproducible
+set.seed(1)
+
+
+#CONTINUE HERE
+
+#COMENTS ABOUT NEXT THINGS.
+
+#La particion de validación para nosotros no existe. No podemos usarla ni tocarla
+#Yo solo puedo trabajar en train. Una vez que tenga el modelo me iré al test pero ya veremos
+
+#Si alguna variable es siempre 0 o un numero cte me la quito. NO BUSCO EN VALIDATION, porque en principio hemos dividido de forma aleatoria --> supongo que en validation ese dato también tendrá ese valor
+
+# Indicar si algo es un factor (las de caracteres, por ejemplo si es necesario que lo interprete bien)
+
+
+
+
+
+
+```
+
+# Análisis exploratorio de Datos
+
+
+## Variable respuesta
+
+
+# Modelos de Aprendizaje Automático
+
+
+## ML no supervisado
+
+
+## ML Supervisado
+
+
+<!-- ESTO ES UN COMENTARIO -->
+
+<!-- UN # TITULO, DOS # SUBTITULO -->
+
