@@ -9,23 +9,35 @@
 
 #Si mi variable a predecir es continua y no binaria --> Hay que pasarla a binaria
 # En principio nosotros tenemos 3 clases.
+library('caret')
 
-setwd("C:/Users/snpar/ML")
-getwd()
-data<-read.csv("data.csv")
+#I import the data from the window at the bottom right, as with read.csv as sophie had, it didnt work for me
+
 summary(data)
-datafr <- data.frame(data)
-filteredfr <- datafr[data$C_api != 'unknown',]
+filteredfr <- data[data$C_api != 'unknown',]
 
 #Partir los datos: test, train, validation.  ACUERDATE DE PONER LA SEMILLA
 
 set.seed(123)
 dim(data)
-# i'm not totally sure how to do this part bc I had to leave.
-# i am confused on how to have 60 20 20 instead of 60 20.
-sample <- sample(c(TRUE, FALSE), nrow(penguins), replace=TRUE, prob=c(0.6,0.2))
-train  <- penguins[sample, ]
-test   <- penguins[!sample, ]
+
+spec = c(train = .6, test = .2, validate = .2)
+
+g = sample(cut(
+  seq(nrow(filteredfr)), 
+  nrow(filteredfr)*cumsum(c(0,spec)),
+  labels = names(spec)
+))
+
+res = split(data, g)
+addmargins(prop.table(table(g)))
+
+train<-res$train
+test<-res$test
+validate<-res$validate
+
+
+
 
 
 
