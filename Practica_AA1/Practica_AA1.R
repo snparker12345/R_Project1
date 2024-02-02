@@ -20,9 +20,14 @@ filteredfr <- datafr[data$C_api != 'unknown',]
 #Partir los datos: test, train, validation.  ACUERDATE DE PONER LA SEMILLA
 
 set.seed(123)
-
-
 dim(data)
+# i'm not totally sure how to do this part bc I had to leave.
+# i am confused on how to have 60 20 20 instead of 60 20.
+sample <- sample(c(TRUE, FALSE), nrow(penguins), replace=TRUE, prob=c(0.6,0.2))
+train  <- penguins[sample, ]
+test   <- penguins[!sample, ]
+
+
 
 
 
