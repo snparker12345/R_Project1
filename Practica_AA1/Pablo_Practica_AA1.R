@@ -8,13 +8,29 @@
 # En principio nosotros tenemos 3 clases.
 
 #################################################################################
+# installing caret
 install.packages("caret", dependencies = TRUE)
+
+# find name of wd
+wdname <- getwd()
+
+# everyone starts from the same directory, practica
+wdname <- paste(wdname, "/Practica_AA1", sep='')
+
+# sets wd to the name we have found
+setwd(wdname)
+
+# reads the data file
 prevdf<-read.csv("datos/data.csv")
+
+# removes the lines with an unknown gender
 dfwithgender <- prevdf[prevdf$gender != 0,]
+
+# removes C api and C man columns
 df <- subset(dfwithgender, select = -c(C_api,C_man) )
 
+# finds the distribution of the dataframe
 dim(df)
-print(df)
 
 #Division of data
 library(caret)
