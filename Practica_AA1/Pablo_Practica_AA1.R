@@ -9,7 +9,7 @@
 
 #################################################################################
 install.packages("caret", dependencies = TRUE)
-prevdf<-read.csv("Practica_AA1/datos/data.csv")
+prevdf<-read.csv("datos/data.csv")
 dfwithgender <- prevdf[prevdf$gender != 0,]
 df <- subset(dfwithgender, select = -c(C_api,C_man) )
 
