@@ -1,0 +1,60 @@
+---
+title: "Memory_AA1"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introducción
+
+METER AQUI LA INTRODUCCION
+PONER DE DONDE HAN SALIDO LOS DATOS, AÑADIENDO LA URL.
+URL: (https://archive.ics.uci.edu/dataset/852/gender+gap+in+spanish+wp)
+
+
+```{r cars}
+summary(cars)
+```
+
+# Datos
+
+You can also embed plots, for example:
+
+```{r lectura, warning=FALSE} 
+#Lectura de datos en csv
+data<-read.csv("/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/datos/data.csv")
+
+dim(data)
+n<- dim(data)[1]
+p <- dim(data)[2]
+
+
+```
+
+Comprobamos que tenemos $n=$```r n```observaciones y $p=$```r p```variables en la base de datos.
+
+```{r particion}
+
+#Semilla para que el ejercicio sea reproducible
+set.seed(1)
+
+#La particion de validación para nosotros no existe. No podemos usarla ni tocarla
+#Yo solo puedo trabajar en train. Una vez que tenga el modelo me iré al test pero ya veremos
+
+#Si alguna variable es siempre 0 o un numero cte me lo quito. NO BUSCO EN VALIDATION, porque en principio hemos dividido de forma aleatoria por tanto supongo que en validation ese dato también tendrá ese valor
+
+
+# Indicar si algo es un factor (las de caracteres, por ejemplo si es necesario que lo interprete bien)
+
+
+
+
+
+
+```
+
+#Análisis exploratorio de datos
+

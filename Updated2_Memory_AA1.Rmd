@@ -117,7 +117,7 @@ Realizamos varias preguntas para intentar entender el problema y los valores de 
 
 ```{r lectura, warning=FALSE} 
 #Lectura de datos en csv
-data<-read.csv("/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/datos/data.csv")
+data<-read.csv("Practica_AA1/datos/data.csv")
 
 #Obtenemos la dimensión de la matriz de datos.
 dim(data)

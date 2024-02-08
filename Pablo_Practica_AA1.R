@@ -9,8 +9,8 @@
 
 #################################################################################
 
-data<-read.csv("/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/datos/data.csv")
-dim(data)
+df<-read.csv("Practica_AA1/datos/data.csv")
+dim(df)
 
 #Division of data
 library(caret)
