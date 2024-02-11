@@ -1,0 +1,154 @@
+<!-- NOTES TO DEVELOP THE PROJECT: PABLO, SOPHIE, ALVARO 
+
+Here you can write important notes you think must be considered for others when continuing with the project. The code starts in the nearest '---' line.
+
+Basic sintax principles of R Markdown (cmd+click to go directly): https://rpubs.com/gustavomtzv/862622
+https://markdown.es/sintaxis-markdown/#parrafos
+
+SEE CONTINUE IN LINE 79
+-->
+
+---
+title: "GRUPO 6: MEMORIA AA1"
+date: "01/02/2024"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introducción
+En esta memoria se detallan los procesos y procedimientos empleados para la resolución de diferentes cuestiones sobre la base de datos "Gender Gap in Spanish Wikipedia". 
+
+Primeramente es conveniente entender el problema a abordar.
+
+
+## Brecha de género en Wikipedia.
+Wikipedia es una enciclopedia de contenido libre que proyecta reunir todo el conocimiento humano. Se ubica en internet y se desarrolla gracias a voluntarios de todo el mundo; esto es, que la redactan y mantienen diversas personas en diferentes ubicaciones del globo. 
+
+Sabemos que la población mundial se encuentra equitativamente dividida entre hombres y mujeres (hay una diferencia insignificante entre ambos grupos). Sin embargo, entre el 84 y el 91 por ciento de quienes editan las páginas de Wikipedia son varones, a pesar de que, como sabemos, son el 50% de la población mundial.
+
+En 2011 la Fundación Wikimedia, organización matriz de Wikipedia sin ánimo de lucro, realizó una encuesta y los resultados fueron verdaderamente significativos:
+
+<center>
+
+![Fundación Wikimedia:https://es.wikipedia.org/wiki/Fundaci%C3%B3n_Wikimedia](/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/img1.svg)
+
+</center>\
+
+Puede encontrar más información sobre la brecha de género en Wikipedia en el siguiente enlace:
+https://es.wikipedia.org/wiki/Brecha_de_g%C3%A9nero_en_Wikipedia
+
+**NOTA: Específicamente en nuestro problema trabajaremos con datos relativos a los editores de Wikipedia España.**
+
+<!--NO ME COGE COMO GUIONES LOS ASTERISCOS-->
+
+# Datos
+La base de datos seleccionada para abordar el problema de disparidad de género en la redacción de Wikipedia España se puede encontrar el subsiguiente enlace: https://archive.ics.uci.edu/dataset/852/gender+gap+in+spanish+wp
+
+Veamos en detalle las variables que componen el dataset:
+
+*Gender: [TARGET] Indica el género codificado. Codificación: 0 para género desconocido, 1 para hombre y 2 para mujer.
+
+*C_api: [TARGET] Indica el género según la API de WikiMedia (véase sección de introducción para comprender la relación de Wikimedia con el dataset en cuestión). Codificación: desconocido, hombre y mujer.
+
+*C_man: [TARGET] Indica el género, el cual se extrae de la codificación del contenido de Wikipedia. Codificación: 1 hombre, 2 mujer, 3 género desconocido.
+
+*E_NEds: Índice i del estrato. Índices: ij. Valores: 0,1,2,3.
+
+*E_Bpag: Índice j del estrato. Índices: ij. Valores: 0,1,2,3.
+
+*firstDay: Fecha de la primera edición en Wikipedia España (YYYYMMDDHHMMSS).
+
+*lastDay: Fecha de la última edición en Wikipedia España (YYYYMMDDHHMMSS).
+
+*NEds: Número total de ediciones.
+
+*NDays: Número de días totales (último día-primer día +1)
+
+*NActDays: Número de días con ediciones.
+
+*NPages: Número de páginas diferentes editadas.
+
+*NPcreated: Número de páginas creadas.
+
+*pagesWomen: Número de ediciones en páginas relacionadas con la mujer.
+
+*wikiprojWomen: Número de ediciones en proyectos 'Wiki' relacionados con la mujer.
+
+*ns_user: Número de ediciones con namespace 'usuario'.
+
+*ns_wikipedia: Número de ediciones con namespace 'Wikipedia'.
+
+*ns_talk: Número de ediciones con namespace 'talk'.
+
+*ns_userTalk: Número de ediciones con namespace 'usertalk'.
+
+*ns_content: Número de ediciones con namespace 'pages'.
+
+*wightIJ: Corrección de peso para estrato ij. <!--NO ENTIENDO AUN LAS UNIDADES DE ESTO NI LO QUE SIGNIFICA EXACTAMENTE-->
+
+*NIJ: Numero de elementos en el estrato ij.
+
+<!--CONSULTAR ESTO CON LOS PROFES EL PROXIMO DIA-->
+Nótese que el problema a resolver es de clasificación. Por tanto debemos convertir nuestra variable target a tipo binario. 
+
+<!--NO ME LO COGE COMO TÍTULO-->
+#Business understanding 
+
+Una vez hemos detectado las diferentes variables con las que vamos a trabajar, es fundamental comprender cómo estas se relacionan, entre qué valores se definen, si alguna presenta algún dato atípico...
+
+Realizamos varias preguntas para intentar entender el problema y los valores de los datos contenidos:
+
+¿Se realizan muchas ediciones en Wikipedia?
+¿Cuántos proyectos 'Wiki' se realizan en total?
+¿Cuántos días se suele tardar en realizar una edición?
+¿Por qué existen diferentes 'namespace' para editar Wikipedia?
+
+
+<!--NO ME LO COGE COMO TÍTULO-->
+#Data understanding
+
+```{r lectura, warning=FALSE} 
+#Lectura de datos en csv
+data<-read.csv("Practica_AA1/datos/data.csv")
+
+#Obtenemos la dimensión de la matriz de datos.
+dim(data)
+n<- dim(data)[1]  # Así nombraremos las filas
+p <- dim(data)[2] # Así nombraremos las columnas
+```
+Por tanto, tenemos  $n=$```r n```observaciones y $p=$```r p```variables en la base de datos. 
+```{r np, warning=FALSE} 
+n
+p
+```
+
+# Análisis exploratorio de Datos
+
+¿Por qué para la variable wikiprojWomen tenemos un máximo de 949 y la gran mayoría de valores son 0 o similar?
+¿No son muchas las ediciones 153193.0 (máximo de NEds)?
+
+
+## Variable respuesta
+
+
+# Modelos de Aprendizaje Automático
+
+
+## ML no supervisado
+
+
+## ML Supervisado
+
+
+<!-- ESTO ES UN COMENTARIO -->
+
+<!-- UN # TITULO, DOS # SUBTITULO -->
+
