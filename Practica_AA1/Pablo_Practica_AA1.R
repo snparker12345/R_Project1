@@ -69,12 +69,76 @@ dim(val_data)
 #Check if dimensions match. Objective 4746 obs (it does match)
 dim(train_data)+dim(test_data)+dim(val_data)
 
+newdf <- train_data$wikiprojWomen
+
+table(newdf)
+
+# histogram for train data and wiki projects for women (many zero values here)
+hist((train_data$wikiprojWomen)^(1/6), 10)
+
+# creates a table showing each data point (and how they are very skewed)
+table(train_data$wikiprojWomen)
+
+# histogram for train data and wiki projects for women (many zero values here)
+hist(sqrt(train_data$ns_user), 10)
+
+# creates a table showing each data point for ns users; 
+table(train_data$ns_user)
+
+# this histogram has quickly dropping numbers from left to right, right skewed
+hist(sqrt(train_data$ns_user), 50)
+
+# creates a table showing each data point for ns users, there are very many points
+table(train_data$ns_user)
+
+# this histogram has quickly dropping numbers from left to right, right skewed
+hist(sqrt(train_data$ns_user), 50)
+
+# creates a table showing each data point for ns users, there are very many points
+table(train_data$ns_user)
+
+#ns_wikipedia, ns_talk, ns_userTalk, ns_content, weightIJ, nIJ
+
+#large variations among data, right skewed
+hist((train_data$ns_wikipedia)^(1/3), 20)
+
+# huge variety of values between 0 and 2989
+table(train_data$ns_wikipedia)
+
+#large variations among data, right skewed
+hist((train_data$ns_talk)^(1/3), 20)
+
+# huge variety of values between 0 and 4788
+table(train_data$ns_talk)
+
+#large variations among data, right skewed
+hist((train_data$ns_talk)^(1/3), 20)
+
+# huge variety of values between 0 and 4788
+table(train_data$ns_talk)
+
+#large variations among data, right skewed
+hist(sqrt(train_data$ns_userTalk), 200)
+
+# huge variety of values between 0 and about 9000 with an outlier at 12004
+table(train_data$ns_userTalk)
 
 
+#large variations among data, right skewed
+hist(sqrt(train_data$ns_content), 200)
 
+# huge variety of values between 0 and 2989
+table(train_data$ns_content)
 
+# a nice relatively normal loking graph, centered around < 1.0
+hist(train_data$weightIJ, 10)
 
+# values from 0 to 2
+table(train_data$weightIJ)
 
+# a nice relatively normal loking graph, centered around < 1000
+hist(train_data$NIJ, 10)
 
-
+# values from 297 to 1595, relatively regular in between
+table(train_data$NIJ)
 
