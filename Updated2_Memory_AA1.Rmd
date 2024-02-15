@@ -1,5 +1,7 @@
 <!-- NOTES TO DEVELOP THE PROJECT: PABLO, SOPHIE, ALVARO 
 
+prueba
+
 Here you can write important notes you think must be considered for others when continuing with the project. The code starts in the nearest '---' line.
 
 Basic sintax principles of R Markdown (cmd+click to go directly): https://rpubs.com/gustavomtzv/862622
