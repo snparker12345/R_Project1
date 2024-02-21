@@ -48,8 +48,8 @@ set.seed(123)
 indices_60<-createDataPartition(df$gender, times =1, p=0.6)
 
 # 60% of data is used to train the model
-train_data <- df[indices_60$Resample1,] #I select all columns
-dim(train_data)
+train_Data <- df[indices_60$Resample1,] #I select all columns
+dim(train_Data)
 
 #The minus sign (-) indicates "no". I select the data I haven't selected before: the 40% left
 data_test_val<-df[-indices_60$Resample1,] #Data to split into test and validation
@@ -67,78 +67,68 @@ val_data<- data_test_val[-indices_40$Resample1,]#I select all columns
 dim(val_data)
 
 #Check if dimensions match. Objective 4746 obs (it does match)
-dim(train_data)+dim(test_data)+dim(val_data)
+dim(train_Data)+dim(test_data)+dim(val_data)
 
-newdf <- train_data$wikiprojWomen
+newdf <- train_Data$wikiprojWomen
 
 table(newdf)
 
-# histogram for train data and wiki projects for women (many zero values here)
-hist((train_data$wikiprojWomen)^(1/6), 10)
+histogram_log=function(x_var){ #VER COMO PONERLE TITULO AL EJE X PARA DIFERENCIAR DE QUE GRAFICO ES CADA VAR
+  
+  ggplot(train_Data, aes(x=x_var)) + 
+    geom_histogram(bins=10, color='black', fill='white')+ 
+    geom_vline(aes(xintercept=mean(x_var)),color="blue", linetype="dashed", size=1)
+}
+
+wikiProjWomenHist <- histogram_log(log(train_Data$wikiprojWomen)); wikiProjWomenHist
 
 # creates a table showing each data point (and how they are very skewed)
-table(train_data$wikiprojWomen)
+table(train_Data$wikiprojWomen)
 
 # histogram for train data and wiki projects for women (many zero values here)
-hist(sqrt(train_data$ns_user), 10)
+trainDataHist <- histogram_log(log(train_Data$ns_user)); trainDataHist
 
 # creates a table showing each data point for ns users; 
-table(train_data$ns_user)
-
-# this histogram has quickly dropping numbers from left to right, right skewed
-hist(sqrt(train_data$ns_user), 50)
-
-# creates a table showing each data point for ns users, there are very many points
-table(train_data$ns_user)
-
-# this histogram has quickly dropping numbers from left to right, right skewed
-hist(sqrt(train_data$ns_user), 50)
-
-# creates a table showing each data point for ns users, there are very many points
-table(train_data$ns_user)
+table(train_Data$ns_user)
 
 #ns_wikipedia, ns_talk, ns_userTalk, ns_content, weightIJ, nIJ
 
 #large variations among data, right skewed
-hist((train_data$ns_wikipedia)^(1/3), 20)
+wikiHist <- histogram_log(log(train_Data$ns_wikipedia)); wikiHist
 
 # huge variety of values between 0 and 2989
-table(train_data$ns_wikipedia)
+table(train_Data$ns_wikipedia)
 
 #large variations among data, right skewed
-hist((train_data$ns_talk)^(1/3), 20)
+nsHist <- histogram_log(log(train_Data$ns_talk)); nsHist
 
 # huge variety of values between 0 and 4788
-table(train_data$ns_talk)
+table(train_Data$ns_talk)
 
 #large variations among data, right skewed
-hist((train_data$ns_talk)^(1/3), 20)
-
-# huge variety of values between 0 and 4788
-table(train_data$ns_talk)
+nsTalk <- histogram_log(log(train_Data$ns_talk)); nsTalk
 
 #large variations among data, right skewed
-hist(sqrt(train_data$ns_userTalk), 200)
+nsUserTalk <- histogram_log(log(train_Data$ns_userTalk)); nsUserTalk
 
 # huge variety of values between 0 and about 9000 with an outlier at 12004
-table(train_data$ns_userTalk)
-
+table(train_Data$ns_userTalk)
 
 #large variations among data, right skewed
-hist(sqrt(train_data$ns_content), 200)
+nsContent <- histogram_log(log(train_Data$ns_content)); nsContent
 
 # huge variety of values between 0 and 2989
-table(train_data$ns_content)
+table(train_Data$ns_content)
 
 # a nice relatively normal loking graph, centered around < 1.0
-hist(train_data$weightIJ, 10)
+hist(train_Data$weightIJ, 10)
 
 # values from 0 to 2
-table(train_data$weightIJ)
+table(train_Data$weightIJ)
 
 # a nice relatively normal loking graph, centered around < 1000
-hist(train_data$NIJ, 10)
+hist(train_Data$NIJ, 10)
 
 # values from 297 to 1595, relatively regular in between
-table(train_data$NIJ)
+table(train_Data$NIJ)
 

@@ -228,4 +228,71 @@ bp_pagesWomen<-boxplot(train_Data$pagesWomen); bp_pagesWomen
 
 #HUGE PERCENTAGE OF OUTLIERS. We'll have to see how we manage that.
 
+# ------ Sophia Section ---- #
+
+histogram_log=function(x_var){ #VER COMO PONERLE TITULO AL EJE X PARA DIFERENCIAR DE QUE GRAFICO ES CADA VAR
+  
+  ggplot(train_Data, aes(x=x_var)) + 
+    geom_histogram(bins=10, color='black', fill='white')+ 
+    geom_vline(aes(xintercept=mean(x_var)),color="blue", linetype="dashed", size=1)
+}
+
+histogram_ten_bins=function(x_var){ #VER COMO PONERLE TITULO AL EJE X PARA DIFERENCIAR DE QUE GRAFICO ES CADA VAR
+  
+  ggplot(train_Data, aes(x=x_var)) + 
+    geom_histogram(bins=10, color='black', fill='white')+ 
+    geom_vline(aes(xintercept=mean(x_var)),color="blue", linetype="dashed", size=1)
+}
+
+wikiProjWomenHist <- histogram_log(log(train_Data$wikiprojWomen)); wikiProjWomenHist
+
+# creates a table showing each data point (and how they are very skewed)
+table(train_Data$wikiprojWomen)
+
+# histogram for train data and wiki projects for women (many zero values here)
+trainDataHist <- histogram_log(log(train_Data$ns_user)); trainDataHist
+
+# creates a table showing each data point for ns users; 
+table(train_Data$ns_user)
+
+#ns_wikipedia, ns_talk, ns_userTalk, ns_content, weightIJ, nIJ
+
+#large variations among data, right skewed
+wikiHist <- histogram_log(log(train_Data$ns_wikipedia)); wikiHist
+
+# huge variety of values between 0 and 2989
+table(train_Data$ns_wikipedia)
+
+#large variations among data, right skewed
+nsHist <- histogram_log(log(train_Data$ns_talk)); nsHist
+
+# huge variety of values between 0 and 4788
+table(train_Data$ns_talk)
+
+#large variations among data, right skewed
+nsTalk <- histogram_log(log(train_Data$ns_talk)); nsTalk
+
+#large variations among data, right skewed
+nsUserTalk <- histogram_log(log(train_Data$ns_userTalk)); nsUserTalk
+
+# huge variety of values between 0 and about 9000 with an outlier at 12004
+table(train_Data$ns_userTalk)
+
+#large variations among data, right skewed
+nsContent <- histogram_log(log(train_Data$ns_content)); nsContent
+
+# huge variety of values between 0 and 2989
+table(train_Data$ns_content)
+
+# a nice relatively normal loking graph, centered around < 1.0
+weightIJHist <- histogram_ten_bins(train_Data$weightIJ); weightIJHist
+
+# values from 0 to 2
+table(train_Data$weightIJ)
+
+# a nice relatively normal loking graph, centered around < 1000
+NIJHist <- histogram_ten_bins(train_Data$NIJ); NIJHist
+
+# values from 297 to 1595, relatively regular in between
+table(train_Data$NIJ)
 
