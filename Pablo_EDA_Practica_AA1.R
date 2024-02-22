@@ -327,5 +327,46 @@ table(train_Data$NIJ)
 
 nij <- boxplot(train_Data$NIJ); nij
 
+# -- ns_userTalk and ns_talk are similar -- #
+plot <- ggplot(data = train_Data, aes(x = ns_userTalk < 10, fill = gender)) +
+  geom_bar();
+plot
+
+plotn <- ggplot(data = train_Data, aes(x = ns_talk < 10, fill = gender)) +
+  geom_bar();
+plotn
+
+
+
+# -- weightIJ and NIJ are similar -- #
+plotweight <- ggplot(data = train_Data, aes(x = weightIJ, fill = gender)) +
+  geom_bar();
+plotweight
+
+plotij <- ggplot(data = train_Data, aes(x = NIJ, fill = gender)) +
+  geom_bar();
+plotij
+
+
+plotwikiprojwomen <- ggplot(data = train_Data, aes(x = wikiprojWomen, fill = gender)) +
+  geom_bar();
+plotwikiprojwomen
+
+# similar to wiki proj women, but with a bigger outlier
+plotwiki <- ggplot(data = train_Data, aes(x = ns_wikipedia, fill = gender)) +
+  geom_bar();
+plotwiki
+
+# very very male dominated
+ns_content_plot <- ggplot(data = train_Data, aes(x = ns_content, fill = gender)) +
+  geom_bar();
+ns_content_plot
+
+# very very male dominated
+ns_talkplot <- ggplot(data = train_Data, aes(x = ns_talk, fill = gender)) +
+  geom_bar();
+ns_talkplot
+ 
+
 
 
