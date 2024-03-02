@@ -1,0 +1,842 @@
+<!-- NOTES TO DEVELOP THE PROJECT: PABLO, SOPHIE, ALVARO 
+
+Here you can write important notes you think must be considered for others when continuing with the project. The code starts in the nearest '---' line.
+
+Basic sintax principles of R Markdown (cmd+click to go directly): https://rpubs.com/gustavomtzv/862622
+https://markdown.es/sintaxis-markdown/#parrafos
+-->
+
+---
+title: "GRUPO 6: MEMORIA AA1"
+date: "01/02/2024"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introducción
+En esta memoria se detallan los procesos y procedimientos empleados para la resolución de diferentes cuestiones sobre la base de datos "Gender Gap in Spanish Wikipedia". 
+
+Primeramente es conveniente entender el problema a abordar.
+
+## Brecha de género en Wikipedia.
+Wikipedia es una enciclopedia de contenido libre que proyecta reunir todo el conocimiento humano. Se ubica en internet y se desarrolla gracias a voluntarios de todo el mundo; esto es, que la redactan y mantienen diversas personas en diferentes ubicaciones del globo. 
+
+Sabemos que la población mundial se encuentra equitativamente dividida entre hombres y mujeres (hay una diferencia insignificante entre ambos grupos). Sin embargo, entre el 84 y el 91 por ciento de quienes editan las páginas de Wikipedia son varones, a pesar de que, como sabemos, son el 50% de la población mundial.
+
+En 2011 la Fundación Wikimedia, organización matriz de Wikipedia sin ánimo de lucro, realizó una encuesta y los resultados fueron verdaderamente significativos:
+
+<center>
+
+![Fundación Wikimedia:https://es.wikipedia.org/wiki/Fundaci%C3%B3n_Wikimedia](/Users/pablopardo/Desktop/R_Studio/AA/Practica_AA1/img1.svg)
+
+</center>\
+
+Puede encontrar más información sobre la brecha de género en Wikipedia en el siguiente enlace:
+https://es.wikipedia.org/wiki/Brecha_de_g%C3%A9nero_en_Wikipedia
+
+**NOTA: Específicamente en nuestro problema trabajaremos con datos relativos a los editores de Wikipedia España.**
+
+
+# Datos
+La base de datos seleccionada para abordar el problema de disparidad de género en la redacción de Wikipedia España se puede encontrar el subsiguiente enlace: https://archive.ics.uci.edu/dataset/852/gender+gap+in+spanish+wp
+
+Veamos en detalle las variables que componen el dataset:
+
+* Gender: [TARGET] Indica el género codificado. Codificación: 0 para género desconocido, 1 para hombre y 2 para mujer.
+
+* C_api: [TARGET] Indica el género según la API de WikiMedia (véase sección de introducción para comprender la relación de Wikimedia con el dataset en cuestión). Codificación: desconocido, hombre y mujer.
+
+* C_man: [TARGET] Indica el género, el cual se extrae de la codificación del contenido de Wikipedia. Codificación: 1 hombre, 2 mujer, 3 género desconocido.
+
+* E_NEds: Índice i del estrato. Índices: ij. Valores: 0,1,2,3.
+
+* E_Bpag: Índice j del estrato. Índices: ij. Valores: 0,1,2,3.
+
+* firstDay: Fecha de la primera edición en Wikipedia España (YYYYMMDDHHMMSS).
+
+* lastDay: Fecha de la última edición en Wikipedia España (YYYYMMDDHHMMSS).
+
+* NEds: Número total de ediciones.
+
+* NDays: Número de días totales (último día-primer día +1)
+
+* NActDays: Número de días con ediciones.
+
+* NPages: Número de páginas diferentes editadas.
+
+* NPcreated: Número de páginas creadas.
+
+* pagesWomen: Número de ediciones en páginas relacionadas con la mujer.
+
+* wikiprojWomen: Número de ediciones en proyectos 'Wiki' relacionados con la mujer.
+
+* ns_user: Número de ediciones con namespace 'usuario'.
+
+* ns_wikipedia: Número de ediciones con namespace 'Wikipedia'.
+
+* ns_talk: Número de ediciones con namespace 'talk'.
+
+* ns_userTalk: Número de ediciones con namespace 'usertalk'.
+
+* ns_content: Número de ediciones con namespace 'pages'.
+
+* wightIJ: Corrección de peso para estrato ij. 
+
+* NIJ: Numero de elementos en el estrato ij.
+
+
+Nótese que el problema a resolver es de clasificación. Por tanto debemos convertir nuestra variable target a tipo binario. 
+
+
+# Business understanding. 
+Una vez hemos detectado las diferentes variables con las que vamos a trabajar, es fundamental comprender cómo estas se relacionan, entre qué valores se definen, si alguna presenta algún dato atípico...
+
+Realizamos varias preguntas para intentar entender el problema y los valores de los datos contenidos:
+
+¿Se realizan muchas ediciones en Wikipedia?
+¿Cuántos proyectos 'Wiki' se realizan en total?
+¿Cuántos días se suele tardar en realizar una edición?
+¿Por qué existen diferentes 'namespace' para editar Wikipedia?
+
+**OBJETIVO: Predecir el género del editor de una página de Wikipedia dada.**
+
+# Data understanding.
+Procedemos a cargar nuestros datos. Escogemos un único target: gender. Por tanto, eliminamos el resto de variales target (C_api y C_man), las cuales contienen datos similares. Además, eliminamos los datos categorizados como 'unknown' del target, reduciendo los niveles de nuestro factor en una unidad, de 3 a 2: 1 hombre, 2 mujer. 
+
+## Librerías.
+
+```{r LIBREÍAS, echo=FALSE, message=FALSE}
+library(caret)
+library(ggplot2)
+library(readr)
+library(tidyverse)
+library(viridis)
+library(dplyr)
+library(gridExtra)
+library(ggplot2)
+library(dplyr)
+library(pdp) #pima dataset
+library(corrplot)
+library(palmerpenguins)
+library(plotly)
+library(car)
+library(GGally)
+library(MASS)
+library(modeest)
+```
+
+## Lectura de datos.
+```{r lectura, warning=FALSE} 
+
+#Semilla para que nuestro análisis sea reproducible
+set.seed(314)
+
+#Lectura de datos en csv
+orig_df<-read_csv("datos/data.csv", show_col_types=FALSE)
+#Eliminamos los datos con valor 'unknown' en la variable gender.
+df_no_unknown<-orig_df[orig_df$gender !=0,]
+#Eliminamos las variables target que no vamos a usar. Comprobamos el procedimiento: 
+df<-subset(df_no_unknown, select=-c(C_api,C_man)); df
+
+#Obtenemos la dimensión de la matriz con los que trabajaremos de ahora en adelante
+dim(df)
+n<- dim(df)[1]  # Así nombraremos las filas
+p <- dim(df)[2] # Así nombraremos las columnas
+```
+Por tanto, tenemos  $n=$```r n```observaciones y $p=$```r p```variables en la base de datos. 
+```{r np, warning=FALSE} 
+n
+p
+```
+
+## Division de los datos: train, test y validation.
+
+Para este proyecto, se emplea una proporción de datos del **60%, 20%, 20%** para el entrenamiento, la prueba y la validación respectivamente. Para realizar la partición de los datos se ha empleado la función **createDataPartition** de la **librería caret.**
+
+* Obtenemos nuestros datos de entrenamiento:
+```{r DIVISION1, warning=FALSE} 
+
+#Obtengo los índices para el 60% de los datos totales
+indices_60 <- createDataPartition(df$gender, times = 1, p = 0.6)
+
+#Se utiliza el 60% de los datos para entrenar el modelo
+train_Data <- df[indices_60$Resample1,] # Selecciono todas las columnas
+```
+
+Dimensión de datos para el entrenamiento: ```r dim(train_Data)```
+
+* Agrupamos los datos restantes para posteriormente volver a particionar.
+
+```{r DIVISION2, warning=FALSE} 
+#El signo menos (-) indica "no". Selecciono los datos que no he seleccionado antes: el 40% restante
+data_test_val <- df[-indices_60$Resample1,] # Datos para dividir en prueba y validación
+
+#Obtengo los índices para el 20% de los datos totales (50% de data_test_val)
+indices_40 <- createDataPartition(data_test_val$gender, times = 1, p = 0.5)
+```
+
+* Obtenemos nuestros datos de prueba:
+```{r DIVISION3, warning=FALSE} 
+
+#El 20% de los datos se utiliza para probar el modelo.
+test_Data <- data_test_val[indices_40$Resample1,] # Selecciono todas las columnas
+```
+
+Dimensión de datos para el test: ```r dim(test_Data)```
+
+* Obtenemos nuestros datos de validación:
+```{r DIVISION4, warning=FALSE} 
+
+#Selecciono los datos que no he seleccionado antes: el 50% restante (20% del total)
+val_Data <- data_test_val[-indices_40$Resample1,] # Selecciono todas las columnas
+dim(val_Data)
+```
+
+Dimensión de datos para la validación : ```r dim(val_Data)```
+
+* La suma de particiones debe ser igual a la dimensión total de los datos
+```{r COMPR, warning=FALSE} 
+
+#Verifico si las dimensiones coinciden. Objetivo: 3145 observaciones.
+dim(train_Data) + dim(test_Data) + dim(val_Data)
+
+```
+
+Definimos como factores en R las variables **gender, E_NEds y E_Bpag.**
+```{r FACTORS, warning=FALSE} 
+
+train_Data$gender<-as.factor(train_Data$gender)
+train_Data$E_NEds <-as.factor(train_Data$E_NEds)
+train_Data$E_Bpag <-as.factor(train_Data$E_Bpag)
+```
+<!-- EN EL EDA NO SE PUEDEN ELIMINAR DATOS AUNQUE PAREZCAN ERRORES -->
+
+# Análisis exploratorio de Datos
+Poner estos comentarios cuando detallemos el analisis EDA de cada variable
+¿Por qué para la variable wikiprojWomen tenemos un máximo de 949 y la gran mayoría de valores son 0 o similar?
+¿No son muchas las ediciones 153193.0 (máximo de NEds)?
+
+## Funciones de representación.
+
+Para facilitar la lectura del código, se han definido diversas funciones de representación:
+```{r FUNCIONES DE LOS DATOS, warning=FALSE} 
+
+histogram = function(x_var, title= 'Histograma', x_label, y_label = "Frecuencia") {
+  ggplot(train_Data, aes(x = {{x_var}})) +
+    geom_histogram(bins = 40, color = 'black', fill = 'white') +
+    geom_vline(aes(xintercept = mean({{x_var}})), color = "blue", linetype = "dashed", size = 1) +
+    labs(title = title,
+         x = x_label,
+         y = y_label)
+}
+pdf = function(x_var, title='PDF', x_label, y_label = "Densidad") {
+  ggplot(train_Data, aes(x = {{x_var}})) +
+    geom_density() +
+    labs(title = title,
+         x = x_label,
+         y = y_label)
+}
+
+boxplot = function(x_var, title = "Boxplot", x_label) {
+  ggplot(train_Data, aes({{x_var}})) +
+    geom_boxplot() +
+    labs(title = title,
+         x = x_label)
+}
+```
+<!-- EL GRAFICO NO SALE A COLOR. VER COMO HACER ESTO-->
+## [TARGET] Gender
+Observemos nuestra variable gender. La cual tratamos como factor: 1 hombre, 2 mujer.
+```{r TARGET, warning=FALSE} 
+
+# Veamos la proporción de hombres y mujeres.
+prop.table(table(train_Data$gender))
+
+# Representamos un diagrama de barras.
+ggplot(data = train_Data, aes(x = gender, fill = gender)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(legend.position = "none") +
+  ylab("Frecuencia relativa") +
+  xlab("Género")
+
+```
+</center>\
+
+## E_NEds y E_Bpag
+Las siguientes variables se tratarán juntas ya que pertenecen a una discretización de la variable continua (NEds).
+```{r}
+#Resumen E_NEds
+summary(train_Data$E_NEds)
+```
+
+```{r}
+#Resumen E_Bpag
+summary(train_Data$E_Bpag)
+```
+*En ambas variables se observan 4 grupos.*
+
+```{r}
+#Histograma para ver como están repartidos los grupos E_NEds.
+ggplot(data=train_Data,aes(x=E_NEds,fill=E_NEds)) +
+  geom_bar(aes(y=(..count..)/sum(..count..))) +
+  scale_y_continuous(labels=scales::percent) +
+  theme(legend.position="none") +
+  ylab("Frecuencia relativa") +
+  xlab("Variable respuesta: Grupo")
+```
+</center>\
+*El número de personas en cada grupo está equilibrado.*
+
+```{r}
+#Histograma para ver como están repartidos los grupos en E_Bpag.
+ggplot(data=train_Data,aes(x=E_Bpag,fill=E_Bpag)) +
+  geom_bar(aes(y=(..count..)/sum(..count..))) +
+  scale_y_continuous(labels=scales::percent) +
+  theme(legend.position="none") +
+  ylab("Frecuencia relativa") +
+  xlab("Variable respuesta: Grupo")
+```
+*En este caso los grupos no tienen una cantidad parecida de integrantes.*
+
+## firstDay
+Fragmentamos la variable en 3 para una mejor comprensión. Observamos independientemente el primer año de edicion, el primer mes y el primer día.
+```{r}
+#Descomponemos la fecha.
+ano_inicial<-as.numeric(substr(train_Data$firstDay,start = 1, stop = 4 ))
+```
+
+```{r}
+#Resumen de la variable
+summary(ano_inicial)
+```
+*La media coincide con la mediana. El primer y tercer cuartil no presentan valores que puedan indicar una gran asimetría.*
+
+```{r}
+#Vemos su distribucion con un histograma
+histogram(ano_inicial,title = "Año incial",x_label = "Año")
+```
+</center>\
+*Se pueden apreciar dos poblaciones, una concentrada en 2006 y otra en 2012.*
+```{r}
+#Año inicial - PDF
+pdf(ano_inicial, x_label="Año")
+```
+</center>\
+*Con la PDF no se consiguen distinguir dos poblaciones.*
+
+```{r}
+#Año incial - Boxplot
+boxplot(ano_inicial,title = "Año inicial", x_label = "Año")
+```
+</center>\
+*No se observan datos atípicos.*
+*El año incial puede ser de interés, ya que como veremos ahora, el mes y el día no presentan nada destacable.*
+```{r}
+#Obtenemos el mes del dato.
+mes_inicial<-as.numeric(substr(train_Data$firstDay,start = 5, stop = 6 ))
+#Resumen del mes inicial.
+summary(mes_inicial)
+```
+*La mediana está muy cerca de la media. El primer y tercer cuartil no presentan valores que puedan indicar una gran asimetría.*
+
+```{r}
+#Mes inicial - Histograma
+histogram(mes_inicial, x_label = "Mes",title = "Mes inicial")
+```
+</center>\
+*El número de cuentas creadas a lo largo del año es regular. El mes de Agosto es en el que mas nuevas cuentas se han creado.*
+
+```{r}
+#Boxplot - Mes inicial
+boxplot(mes_inicial,x_label = "Mes inicial")
+```
+</center>\
+*El boxplot no muestra valores atípicos y observamos que en los datos no hay apenas variacion.*
+
+```{r}
+#Obtenemos el día.
+dia_inicial<-as.numeric(substr(train_Data$firstDay,start = 7, stop = 8 ))
+#Resumen del dato.
+summary(dia_inicial)
+```
+*La media y la mediana son parecidas. Todos los datos son coherentes con los días del mes. No parece haber errores.*
+
+```{r}
+#Dia incial - Histograma
+histogram(dia_inicial, x_label = "Día",title = "Día inicial")
+```
+</center>\
+*Los datos no provienen de una distribucion normal. Cabe destacar que el día 31 no parece tener una menor cantidad de primeras ediciones a pesar de que no todos los meses cuentan con 31 días.*
+
+```{r}
+#Día inicial - Boxplot
+boxplot(dia_inicial, x_label = "Dia inicial")
+```
+</center>\
+*Nada destacable.*
+
+**Como hemos podido ver el único dato que parece poder resultar de interés es el año.**
+
+## lastDay
+Al igual que con firstDay, hemos dividido esta variable en tres datos, siendo estos el año, el mes y el día.
+
+```{r}
+#Obtenemos el año final del dato.
+ano_final<-as.numeric(substr(train_Data$lastDay,start = 1, stop = 4 ))
+#Resumen del dato.
+summary(ano_final)
+```
+*La media vuelve a coincidir con la mediana, aunque esta vez el tercer cuartil es elevado (2017, el dato más alto), lo que nos puede indicar una asimetría hacia la izquierda, con una larga cola.*
+
+```{r}
+#HAño final - Histograma
+histogram(ano_final,x_label = "Año final")
+```
+</center>\
+*Observamos que los primeros años son bastante uniformes, solo se aprecia un aumento leve, pero en el 2017 se duplican la cantidad de últimas ediciones con respecto al año anterior. A diferencia del año inicial, en este caso no hay sospechas de haber dos poblaciones*
+
+```{r}
+#Año final - Boxplot
+boxplot(ano_final, x_label = "Año")
+```
+</center>\
+*La mayoría de los datos están concentrados en últimos años.*
+
+```{r}
+#Obtenemos el mes final.
+mes_final<-as.numeric(substr(train_Data$lastDay,start = 5, stop = 6 ))
+#Resumen del dato.
+summary(mes_final)
+```
+*Se vuelve a apreciar que los cuartiles son valores estandar, y que la media coincide con la mediana por lo que no se espera nada extraño a la hora de representar los datos.*
+
+```{r}
+#Mes final - Histograma
+histogram(mes_final,x_label = "Mes final")
+```
+</center>\
+*Pese a la suposicion sacada tras ver el resumen de la variable, hay una gran acumulación de últimas ediciones en el mes de Septiembre, muy notable con respecto al resto.*
+
+```{r}
+#Mes final - Boxplot
+boxplot(mes_final, x_label = "Mes final")
+```
+</center>\
+*No hay datos atípicos*
+
+```{r}
+#Sacamos el día.
+dia_final<-as.numeric(substr(train_Data$lastDay,start = 7, stop = 8 ))
+#Resumen del dato
+summary(dia_final)
+```
+*Vuelven a asemejarse la media y mediana. Los datos en este caso también parecen coherentes.*
+
+```{r}
+histogram(dia_final, x_label = "Ultimo dia")
+```
+</center>\
+*Se observa una concentración de últimas ediciones en el primer día del mes. Y que el día con menos cantidad es el 31, lo cual era de esperar. Vuelve a ser sorprender la pequeña diferencia entre el día 31 y el resto de días.*
+
+```{r}
+#Dia final - Boxplot
+boxplot(dia_final, x_label= "Dia")
+```
+</center>\
+*No se observan valores atípicos ni nada destacable.*
+
+## NEds
+
+```{r}
+#Resumen de los datos
+summary(train_Data$NEds)
+```
+*Observamos que el primer cuartil es bajo, por lo que tenemos una gran concentración de datos con valores bajos. La media es muy superior a la mediana, lo que va a presentar asimetría a la derecha. También se observa que el máximo de ediciones es (153193), dato aparentemente parece erróneo.*
+
+```{r}
+#Veamos el histograma.
+histogram(NEds,x_label = "Cantidad de ediciones", y_label = "Frecuencia",title = "Número de ediciones" )
+```
+</center>\
+
+```{r}
+#NEds - pdf
+pdf(NEds, x_label = "Cantidad ediciones")
+```
+</center>\
+*Se observa que la probabilidad se encuentra concentrada en valores bajos*
+
+```{r}
+boxplot(NEds,title = "Número de ediciones", x_label = "Frecuencia")
+```
+</center>\
+*Se observa que el valor máximo está muy alejado de los otros valores atípicos, lo que apoya el pensamiento de que puede ser un dato erróneo.*
+
+```{r}
+#log(NEds) - Boxplot
+boxplot(log(NEds),title = "Número de ediciones (log)", x_label = "Frecuencia")
+```
+</center>\
+*Realizando un boxplot al logaritmo de la variable se aprecian mejor los valores atípicos. Hay una gran cantidad de ellos.*
+
+## NDays.
+
+```{r NDAys1, warning=FALSE} 
+# Resumen de la variable NDays en train_Data.
+summary(train_Data$NDays)
+```
+*El primer cuartil toma un valor bajo (806) por lo que tenemos una apreciable concentración de datos con valores bajos. Además, la media es algo superior a la mediana, i.e, la distribución presentará una ligera asimetría a la derecha.*
+
+```{r NDAys2, warning=FALSE} 
+# Veamos la forma de su distribución con un histograma. La línea azul representa la media.
+NDays_hist<-histogram(NDays, x_label= "Último día-Primer día +1"); NDays_hist
+```
+</center>\
+*Los datos no provienen de una distribución normal.*
+
+```{r NDAys3, warning=FALSE} 
+# Veamos su función de densidad de probabilidad.
+NDays_pdf<- pdf(NDays, x_label='Último día-Primer día +1'); NDays_pdf
+```
+</center>\
+*La probabilidad se encuentra homogéneamente distribuida, aunque hay una gran concentración como  esperábamos entre los valores 0 y 1500.*
+
+```{r NDAys4, warning=FALSE} 
+# Boxplot.
+bp_NDays<-boxplot(NDays, x_label='Último día-Primer día +1'); bp_NDays
+```
+</center>\
+*No se observan datos atípicos*.
+
+## NActDays, NPages y NPcreated.
+Estudiaremos en conjunto estas variables al presentar una distribución similar. Se obtienen conclusiones similares de todas ellas.
+
+```{r NActDAys0, warning=FALSE} 
+# Resumen de la variable NActDays en train_Data. 
+summary(train_Data$NActDays)
+```
+*El primer cuartil toma un valor bajo (24), observamos un máximo de 3346 y una media de 53. Por tanto, tenemos una notoria concentración de datos con valores bajos. Además, la media es bastante superior a la mediana, i.e, la distribución presentará una notable asimetría a la derecha.*
+
+```{r NActDAys1, warning=FALSE} 
+
+#NActDAys - Estimación unimodal
+mlv(train_Data$NActDays, method = "meanshift")
+```
+*La moda estimada tiene un valor de 27.19 lo que ratifica nuestra sospecha de que la distribución tendrá una larga cola derecha.*
+
+```{r NActDAys2, warning=FALSE} 
+
+# Resumen de la variable NPages en train_Data. 
+summary(train_Data$NPages)
+```
+*Conclusiones similares a las de la variable NActDays*
+
+```{r NActDAys3, warning=FALSE} 
+
+# Resumen de la variable NPcreated en train_Data. 
+summary(train_Data$NPcreated)
+```
+*En este caso encontramos valores más bajos, aunque, al igual que las otras dos variables, la distribución tendrá una gran asimetría a la derecha al concentrarse los datos en los valores bajos (1Q= 1.0)*
+
+Observemos sus distribuciones.
+```{r NActDAys4, warning=FALSE} 
+
+# NActDays - Veamos la forma de su distribución con un histograma
+NActDays_hist<-histogram(NActDays, x_label='Días con ediciones'); NActDays_hist
+
+# NPages - Veamos la forma de su distribución con un histograma
+NPages_hist<-histogram(NPages, x_label='Páginas diferentes editadas'); NPages_hist
+
+# NPcreated - Veamos la forma de su distribución con un histograma 
+NPcreated_hist<-histogram(NPcreated, x_label='Páginas creadas'); NPcreated_hist
+```
+</center>\
+*Como se puede observar, todas las distribuciones presentan baja uniformidad y una notable asimetría a la derecha.*
+
+```{r NActDAys5, warning=FALSE} 
+
+# NActDays - Veamos su función de densidad de probabilidad.
+NActDays_pdf<- pdf(NActDays, x_label='Días con ediciones'); NActDays_pdf
+
+# NPages - Veamos su función de densidad de probabilidad.
+NPages_pdf<-pdf(NPages, x_label='Páginas diferentes editadas'); NPages_pdf
+
+# NPcreated - Veamos su función de densidad de probabilidad.
+NPcreated_pdf<-pdf(NPcreated, x_label='Páginas creadas'); NPcreated_pdf
+```
+</center>\
+*La probabilidad siempre se encuentra concentrada en los valores bajos. Esto es esperado, considerando los datos analizados anteriormente.*
+
+```{r NActDAys6, warning=FALSE} 
+
+# NActDays - Diagrama de caja.
+bp_NActDays<-boxplot(NActDays, x_label='Días con ediciones'); bp_NActDays
+```
+</center>\
+*Observamos muchos datos superiores a Q3 + 1.5RI. Sin embargo, solo se considerarían datos atípicos aquellos con valor superior a 3000 aproximadamente.*
+
+```{r NActDAys7, warning=FALSE} 
+
+# NPages - Diagrama de caja.
+bp_NPages<-boxplot(NPages, x_label='Páginas diferentes editadas'); bp_NPages
+```
+</center>\
+*Observamos muchos datos superiores a Q3 + 1.5RI. Sin embargo, solo se considerarían datos atípicos aquellos con valor superior a 40000 aproximadamente.*
+
+```{r NActDAys8, warning=FALSE} 
+
+# NPcreated - Diagrama de caja.
+bp_NPcreated<-boxplot(NPcreated, x_label='Páginas creadas'); bp_NPcreated
+```
+</center>\
+
+*Observamos un par de datos atípicos a partir del valor 2000. Especialmente, cabe destacar el valor máximo de la función, el cual es superior a 6000.*
+
+*Esta variable indica el número de páginas creadas. Puede haber sido dato introducido erróneamente, aunque podría  ser verídico, y no parece pertenecer a ninguna de las variables cercanas, i.e NPages o pagesWomen.*
+
+Transformemos los datos para poder trabajar con una distribución con mejores propiedades. **Véase que NPcreated, al ser una variable esparsa, no acepta una transformación box cox.**
+
+```{r NActDAys9, warning=FALSE} 
+
+# NActDays - Transformación de datos (box cox).
+boxcox(lm(train_Data$NActDays ~ 1)) 
+```
+</center>\
+Obtenemos el valor de lambda=0 --> TRANSFORMACIÓN: log10(x). **Esta transformación también será la empleada para los datos de Npages.**
+
+```{r NActDAys10, warning=FALSE} 
+
+new_NActDays<- log10(train_Data$NActDays)
+#Representamos el histograma con los datos transformados
+histogram(new_NActDays, x_label='Días con ediciones')
+```
+</center>\
+
+```{r NActDAys11, warning=FALSE} 
+
+new_NPages<- log10(train_Data$NPages)
+#Representamos el histograma con los datos transformados
+histogram(new_NPages, x_label='Páginas diferentes editadas')
+
+```
+</center>\
+
+## pagesWomen
+
+```{r pagesWomen1, warning=FALSE} 
+# Resumen de la variable pagesWomen en train_Data.
+summary(train_Data$pagesWomen)
+```
+</center>\
+*Podemos apreciar que, tanto el primer como el tercer cuartil, tienen un valor de 0. Además, la mediana es 0 y la media está muy cercana a 0.Por tanto, estamos ante una **variable dispersa**, puesto que la mayoría de valores son 0. *
+
+```{r pagesWomen2, warning=FALSE} 
+
+# Veamos la forma de su distribución con un histograma 
+pagesWomen_hist<-histogram(pagesWomen, x_label='Ediciones en pág. Mujer'); pagesWomen_hist
+```
+</center>\
+*Confirmamos nuestra conclusión anterior*
+```{r pagesWomen3, warning=FALSE} 
+
+# Veamos su función de densidad de probabilidad.
+pagesWomen_pdf<-pdf(pagesWomen, x_label='Ediciones en pág. Mujer'); pagesWomen_pdf
+```
+</center>\
+*La probabilidad se encuentra únicamente concentrada en los valores bajos. Esto es esperado, considerando los datos del summary analizado anteriormente.*
+
+```{r pagesWomen4, warning=FALSE} 
+
+# Diagrama de caja.
+bp_pagesWomen<-boxplot(pagesWomen, x_label='Ediciones en pág. Mujer'); bp_pagesWomen
+```
+</center>\
+*Encontramos un par de datos atípicos entre los valores 50 y 100, aunque el valor atípico más destacable se encuentra totalmente aislado por encima del valor 150. Este dato es el máximo que se indica en el summary: 185000.*
+
+*Teniendo en cuenta que se trata de una variable que incluye información sobre el número de ediciones en páginas relacionadas con la mujer, parece un error.* 
+
+*Otra opción sería considerar que ese dato se encuentra ahí debido a un error humano y que realmente pertenece a otra variable. En el rango de la variable anterior a pagesWomen, i.e NPcreated, un valor de 185 podría encajar (en ningún caso 185000) pero NPcreated no tiene ningún valor faltante. Esto nos hace pensar que no acepta ningún valor añadido.*
+
+*Por otro lado, la siguiente variable a pagesWomen, i.e wikiprojWomen, tiene un comportamiento muy similar a pagesWomen, por lo que en ningún caso aceptaría ese dato.*
+
+*Teniendo en consideración lo mencionado anteriormente, se cambia el dato por 0, puesto que es el valor más frecuente, coincide con la media y está cercano a la media.*
+
+
+<!-- METER AQUI PARTE SOFIA QUE ME MANDE ALVARO-->
+
+
+
+## weightIJ
+```{r}
+#Resumen de la variable.
+summary(train_Data$weightIJ)
+```
+*La media y la mediana son prácitamente idénticas .El tercer cuartil presenta un valor bajo, por lo que no habrá gran concetración de valores altos.*
+
+```{r}
+#weightIJ - Histograma
+histogram(weightIJ, title = "Histograma", x_label = "Peso")
+```
+</center>\
+*Se confirma la concentración en valores bajos.*
+
+```{r}
+boxplot(weightIJ, title = "Boxplot", x_label = "Peso")
+```
+</center>\
+*Se observan datos atípicos tanto en valores bajos y altos.*
+
+```{r}
+#weightIJ - PDF
+pdf(weightIJ, x_label = "Peso")
+```
+</center>\
+
+## NIJ
+Ahora analizaremos NIJ.
+```{r}
+#Resumen de la variable
+summary(train_Data$NIJ)
+```
+*Se puede apreciar que el tercer cuartil es algo bajo, lo que indica que habrá poca concentración de valores altos.*
+
+```{r}
+#NIJ - Histograma
+histogram(NIJ,x_label = "Personas por grupo")
+```
+</center>\
+*Las sospechas de que habría pocos valores altos se confirma.*
+
+```{r}
+boxplot(NIJ,x_label = "Personas por grupo")
+```
+</center>\
+*El grupo con más personas se trata de un dato atípico.*
+
+```{r}
+#NIJ - PDF
+pdf(NIJ, x_label = "Personas por grupo")
+```
+</center>\
+*Se puede ver que la probabiidad es mayor cerca de la mediana, y a desde el máximo de probabilidad esta dismiuye hasta sus mínimos (excepto en el dato aítpico).*
+
+
+
+
+<!-- #EDA MULTIVARIANTE (Habría que meterlo aquí) -->
+
+
+
+
+# Técnicas de reducción de la dimensionalidad: PCA
+
+## Análisis de variables factibles para el PCA.
+A continuación, realizamos el análisis de componentes principales para reducir la dimensionalidad de nuestra muestra de datos **train_Data**. 
+
+En nuestro dataset encontramos variables continuas y categóricas. Para realizar nuestro PCA solo seleccionamos las variables continuas o discretas con muchos valores. Además, eliminamos variables redundantes, que categorizan otras más generales: E_Neds, E_Bpag, NIJ (estas tres variables explican N_Eds). Asimismo, eliminamos las variables que contienen información sobre fechas, expresadas con un único número.
+
+Por otro lado, hay variables que, tal y como se representan originalmente, son difíciles de interpretar. Por tanto, para un mejor entendimiento y posterior análisis del PCA, modificamos primero las variables con una distribución asimétrica y poco descriptiva. Estas variables modificadas sustituiran en nuestro conjunto de datos para el PCA a sus hermanas no modificadas.
+
+**NOTA**. Véase que hay variables que ven sus valores incrementados en 0.5. Esto se realiza para que no contengan ningún valor que sea estrictamente 0. En este caso, la transformación logarítmica otorgaría un valor de -inf, lo cual nos imposibilitaría la realización del PCA.
+
+```{r}
+# Transformación de variables
+new_NActDays<- log10(train_Data$NActDays+0.5)
+new_NPages<- log10(train_Data$NPages)
+new_ns_talk<- log10(train_Data$ns_talk+0.5)
+new_ns_userTalk<- log10(train_Data$ns_userTalk+0.5)
+new_ns_content<- log10(train_Data$ns_content+0.5)
+new_ns_user<- log10(train_Data$ns_user)
+new_ns_wikipedia<- log10(train_Data$ns_wikipedia+0.5)
+```
+
+Ahora eliminemos las variables que no introduciremos al PCA y añadimos las variables modificadas anteriormente. Así obtenemos nuestro vector de datos **train_PCA**, con 13 variables
+
+```{r}
+# Eliminamos las variables que no podemos introducir al PCA
+delete_PCA <- subset(train_Data, select=-c(gender,E_NEds, E_Bpag, firstDay, lastDay, NIJ,weightIJ,NActDays,NPages,ns_talk,ns_userTalk,ns_content,ns_user, ns_wikipedia))
+
+# Añadimos variables a introducir en el PCA
+train_PCA<- cbind(delete_PCA,new_NActDays, new_NPages,new_ns_talk, new_ns_userTalk, 
+                  new_ns_content,new_ns_user,new_ns_wikipedia)
+dim(train_PCA)
+```
+Finalmente, introduciremos 12 variables a nuestro PCA.
+
+## Principal Component Analysis.
+Realizamos el PCA con nuestros datos estandarizados.
+
+```{r}
+PCA_std <- prcomp(train_PCA, scale=T); PCA_std
+```
+Analicemos las primeras componentes principales obtenidas:
+
+* PC1 asigna pesos positivos a todas las variables, representando un promedio de las mismas.
+
+* PC2 compara el numero de ediciones en proyectos wiki de mujeres y las ediciones en las páginas relacionadas con mujeres con el resto de variables.
+
+* PC3 compara el número de días totales con el número de páginas creadas
+
+Observemos el resumen del PCA.
+```{r}
+summary(PCA_std)
+```
+Con las 2 primeras componentes recogemos el 62% de la variabilidad. Con 3 recogeríamos un 71%. En nuestro caso, trabajaremos con las dos primeras componentes, puesto que las siguientes no añaden de forma significante información adicional. 
+
+Veamos representada la varianza de cada componente:
+
+```{r}
+plot(PCA_std)
+```
+</center>\
+
+*En efecto, ratificamos que las dos primeras componentes principales acumulan la mayor parte de la varianza.*
+
+Otra interpretación podría ser la selección de las 4 primeras componentes principales, aportando estas dos últimas una explicabilidad promedio del 8% cada una. En este caso, se vería representado un 79% de de la varibilidad total, pero la complejidad de la interpretación incrementaría notoriamente y posiblemente podríamos encontrar información reduntante.
+
+Representemos nuestras componentes 1 y 2 cruzadas con el target.
+```{r}
+plot(PCA_std$x[,1], PCA_std$x[,2], col=train_Data$gender)
+
+```
+*NO VEO NADA*
+
+Crucemos las variables con mayor variabilidad en PC1: **new_NActDays** y **new_NPages**. Incluimos el target para observar la relevancia de estas componentes en él.
+```{r}
+plot(train_PCA$new_NActDays, train_PCA$new_NPages, col=train_Data$gender)
+```
+</center>\
+*Se observa que estas variables afectan en gran medida al target*
+
+Crucemos las variables con mayor peso en PC2: **pagesWomen** y **wikiprojWomen**. Incluimos, de nuevo, la variable género (target).
+```{r}
+plot(train_PCA$pagesWomen, train_PCA$wikiprojWomen, col=train_Data$gender)
+```
+</center>\
+*NO VEO NADA*
+
+# Modelos de Aprendizaje Automático
+
+## ML no supervisado: K-MEANS
+bla bla bla
+
+## ML Supervisado
+
+
+<!-- ESTO ES UN COMENTARIO -->
+
+<!-- UN # TITULO, DOS # SUBTITULO -->
+
+<!-- AGRUPAR BOXPLOT SI LAS VARIABLES SON PARECIDAS PARA COMPARAR 2 A 2 
+HACER GGPAIRS CON VARIABLES RELACIONADAS CON LOS DÍAS PARA VER SU CORRELACION Y DEMÁS
+VER WASS MIGUEL ALCOCER PARA PONER GRAFICOS PARALELAMENTE EN HORIZONTAL-->
+
