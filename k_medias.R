@@ -108,3 +108,28 @@ fviz_gap_stat(gap_stat)
 k1 <- kmeans(df, centers = 1, nstart = 25)
 
 fviz_cluster(k1, data = df)
+
+# creates a graph of proposed number of clusters
+library("NbClust")
+nb <- NbClust(df, distance = "euclidean", min.nc = 2,
+              max.nc = 10, method = "kmeans");  nb
+# the results said, 9 proposed 2 clusters, 7 proposed 3, 3 proposed 6, 3 proposed 
+# 8, and 2 proposed 10
+
+library(parameters)
+
+n_clust <- n_clusters(as.data.frame(df), package = c("easystats", "NbClust", "mclust"), standardize = FALSE); n_clust
+
+# this showed that two clusters was ideal
+plot(n_clust)
+
+train_Data %>%
+  mutate(Cluster = k1$cluster) %>%
+  group_by(Cluster) %>%
+  summarise_all("mean")
+
+library(parameters)
+
+res_kmeans <- cluster_analysis(df, n = 1, method = "kmeans")
+
+plot(summary(res_kmeans))
