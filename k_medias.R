@@ -5,6 +5,8 @@ library(tidyverse)
 library(viridis)
 library(cluster)    # algoritmos de clustering 
 library(factoextra)
+library(parameters)
+library("NbClust")
 ############################### MAIN CODE #################################################
 orig_df<-read_csv("Practica_AA1/datos/data.csv", show_col_types=FALSE)
 #We eliminate the data with 'unknown' values in the variable gender.
@@ -50,86 +52,59 @@ dim(val_data)
 #Check if dimensions match. Objective 3145 obs (it does match)
 dim(train_Data)+dim(test_data)+dim(val_data)
 
-# create new df
-head(train_Data)
+delete_Kmeans <- subset(train_Data, select=-c(gender,E_NEds, E_Bpag, firstDay, lastDay, 
+                                              NIJ, weightIJ,NActDays,NPages,ns_talk,ns_userTalk,
+                                              ns_content,ns_user, ns_wikipedia))
+new_NActDays<- log10(train_Data$NActDays+0.5)
+new_NPages<- log10(train_Data$NPages)
+new_ns_talk<- log10(train_Data$ns_talk+0.5)
+new_ns_userTalk<- log10(train_Data$ns_userTalk+0.5)
+new_ns_content<- log10(train_Data$ns_content+0.5)
+new_ns_user<- log10(train_Data$ns_user)
+new_ns_wikipedia<- log10(train_Data$ns_wikipedia+0.5)
 
-df <- train_Data
+# Subconjunto de datos
+train_Kmeans<- cbind(delete_Kmeans,new_NActDays, new_NPages,new_ns_talk, new_ns_userTalk, 
+                     new_ns_content,new_ns_user,new_ns_wikipedia)
 
-# eliminamos valores faltantes
-df <- na.omit(df)
+#Estandarizamos las variables
+train_Kmeans_std <- scale(train_Kmeans)
 
-# escalado de todas las variables
-df <- scale(df)
+fviz_nbclust(train_Kmeans_std, kmeans, method = "wss")
 
-head(df)
+k2 <- kmeans(train_Kmeans_std, centers = 2, nstart = 25)
 
-distance <- get_dist(df)
+k2plot <- fviz_cluster(k2, data = train_Kmeans_std); k2plot
 
-# create graph of gradient
-gradient_graph <- fviz_dist(distance, gradient = list(low = "white", mid = "black", high = "blue")); gradient_graph
+# 3 centroides
+k3 <- kmeans(train_Kmeans_std, centers = 3, nstart = 25)
 
-# create k means cluster with 2 centers
-k2 <- kmeans(df, centers = 2, nstart = 25)
-kmeansnum <- str(k2); kmeansnum
-k2
+k3plot <- fviz_cluster(k3, data = train_Kmeans_std); k3plot
 
-# create cluster with 8 centers based on ideal cluster number plot
-fviz_cluster(k2, data = df)
+# Método de la silueta
+fviz_nbclust(train_Kmeans_std, kmeans, method = "silhouette")
 
-set.seed(123)
+# Usamos k2 según la anterior gráfica
+sil <- silhouette(k2$cluster, dist(train_Kmeans_std))
 
-# find ideal number of clusters 
-fviz_nbclust(df, kmeans, method = "wss")
-
-k8 <- kmeans(df, centers = 8, nstart = 25); k8
-
-# plot with ideal number of clusters
-k8clus <- fviz_cluster(k8, data = df); k8clus
-
-# find ideal number of clusters with the silhouette method
-fviz_nbclust(df, kmeans, method = "silhouette")
-
-library(cluster)
-
-# create new silhouette clusters
-sil <- silhouette(k2$cluster, dist(df))
-
+#Dividimos los datos
 fviz_silhouette(sil)
 
-set.seed(123)
-gap_stat <- clusGap(df, FUN = kmeans, nstart = 25,
+gap_stat <- clusGap(train_Kmeans_std, FUN = kmeans, nstart = 25,
                     K.max = 10, B = 50)
 
 print(gap_stat, method = "firstmax")
 
-# this finds that the ideal number of clusters is 1
 fviz_gap_stat(gap_stat)
 
-k1 <- kmeans(df, centers = 1, nstart = 25)
-
-fviz_cluster(k1, data = df)
-
-# creates a graph of proposed number of clusters
-library("NbClust")
-nb <- NbClust(df, distance = "euclidean", min.nc = 2,
+nb <- NbClust(train_Kmeans_std, distance = "euclidean", min.nc = 2,
               max.nc = 10, method = "kmeans");  nb
-# the results said, 9 proposed 2 clusters, 7 proposed 3, 3 proposed 6, 3 proposed 
-# 8, and 2 proposed 10
 
-library(parameters)
+#NO CONVERGE
+n_clust <- n_clusters(as.data.frame(train_Kmeans_std), package = c("easystats", "NbClust", "mclust"), standardize = FALSE); n_clust
 
-n_clust <- n_clusters(as.data.frame(df), package = c("easystats", "NbClust", "mclust"), standardize = FALSE); n_clust
+summary(n_clust)
 
-# this showed that two clusters was ideal
+# DEBERIA SALIR QUE 3 CLUSTERES SON LO OPTIMO
 plot(n_clust)
 
-train_Data %>%
-  mutate(Cluster = k1$cluster) %>%
-  group_by(Cluster) %>%
-  summarise_all("mean")
-
-library(parameters)
-
-res_kmeans <- cluster_analysis(df, n = 1, method = "kmeans")
-
-plot(summary(res_kmeans))
