@@ -5,8 +5,6 @@ library(tidyverse)
 library(viridis)
 library(dplyr)
 library(gridExtra)
-library(ggplot2)
-library(dplyr)
 library(pdp) #pima dataset
 library(corrplot)
 library(palmerpenguins)
