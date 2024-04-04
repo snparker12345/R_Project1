@@ -621,7 +621,9 @@ df_kvecinos_test["gender"] <- test_Data$gender
 prediction.knn <- predict(fit.knn,newdata=df_kvecinos_test,type="prob")[,2]
 
 clase.pred.knn=ifelse(prediction.knn>0.5,"1","2")
+
 cf <- confusionMatrix(as.factor(clase.pred.knn), as.factor(df_kvecinos_test$gender),positive="1")
+
 print(cf)
 
 
