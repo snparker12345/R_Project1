@@ -564,9 +564,64 @@ trainControl <- trainControl(method="repeatedcv", number=10, repeats=3)
 metric <- "Accuracy"
 
 fit.knn <- train(gender~., data=df_kvecinos, method="knn",
-                 metric=metric, trControl= trainControl)
+                 metric=metric, trControl=trainControl)
 knn.k1 <- fit.knn$bestTune 
 
 print(fit.knn)
 
 plot(fit.knn)
+
+
+# usando el metodo de grid search 
+
+grid <- expand.grid(.k=seq(1,30,by=1))
+
+fit.knn <- train(gender~., data=df_kvecinos, method="knn",
+                 metric=metric, tuneGrid=grid, trControl=trainControl)
+
+knn.k2 <- fit.knn$bestTune 
+print(fit.knn)
+
+# cambiando datos de test en la misma manera en que hemos cambiado los datos de tren
+new_NActDays<- log10(test_Data$NActDays+0.5)
+new_NPages<- log10(test_Data$NPages)
+new_ns_talk<- log10(test_Data$ns_talk+0.5)
+new_ns_userTalk<- log10(test_Data$ns_userTalk+0.5)
+new_ns_content<- log10(test_Data$ns_content+0.5)
+new_ns_user<- log10(test_Data$ns_user)
+new_ns_wikipedia<- log10(test_Data$ns_wikipedia+0.5)
+
+# Eliminamos las variables que no podemos introducir al PCA
+NEds<-test_Data$NEds
+NPcreated<-test_Data$NPcreated
+NDays<-test_Data$NDays
+delete_PCA <- subset(test_Data, select=-c(gender,E_NEds, E_Bpag, firstDay, lastDay, NIJ,weightIJ,NActDays,NPages,ns_talk,ns_userTalk,ns_content,ns_user, ns_wikipedia,wikiprojWomen,pagesWomen,ano_inicial,mes_inicial,dia_inicial,ano_final,mes_final,dia_final))
+
+# Añadimos variables a introducir en el PCA
+test_PCA<- cbind(delete_PCA,new_NActDays, new_NPages,new_ns_talk, new_ns_userTalk, 
+                  new_ns_content,new_ns_user,new_ns_wikipedia,NEds,NPcreated,NDays)
+
+#Eliminamos las variables que no podemos usar
+delete_Kmeans <- subset(test_Data, select=-c(gender,E_NEds, E_Bpag, firstDay, lastDay, 
+                                              NIJ, weightIJ,NActDays,NPages,ns_talk,ns_userTalk,
+                                              ns_content,ns_user, ns_wikipedia,wikiprojWomen,pagesWomen,ano_inicial,ano_final,mes_inicial,dia_inicial,dia_final,mes_final))
+
+# Subconjunto de datos
+test_Kmeans<- cbind(delete_PCA,new_NActDays, new_NPages,new_ns_talk, new_ns_userTalk, 
+                     new_ns_content,new_ns_user,new_ns_wikipedia,NEds,NPcreated,NDays)
+
+#Estandarizamos las variables
+test_Kmeans_std <- scale(test_Kmeans)
+
+# crea version de test
+df_kvecinos_test <- as.data.frame(test_Kmeans_std)
+
+df_kvecinos_test["gender"] <- test_Data$gender
+
+prediction.knn <- predict(fit.knn,newdata=df_kvecinos_test,type="prob")[,2]
+
+clase.pred.knn=ifelse(prediction.knn>0.5,"1","2")
+cf <- confusionMatrix(as.factor(clase.pred.knn), as.factor(df_kvecinos_test$gender),positive="1")
+print(cf)
+
+
