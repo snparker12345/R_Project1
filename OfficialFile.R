@@ -555,3 +555,18 @@ hc3$dc
 
 # DIANA: divisive analysis.
 pltree(hc3, cex = 0.6, hang = -1, main = "Dendrogram de DIANA",labels = FALSE)
+
+df_kvecinos <- as.data.frame(train_Kmeans_std)
+
+df_kvecinos["gender"] <- train_Data$gender
+
+trainControl <- trainControl(method="repeatedcv", number=10, repeats=3)
+metric <- "Accuracy"
+
+fit.knn <- train(gender~., data=df_kvecinos, method="knn",
+                 metric=metric, trControl= trainControl)
+knn.k1 <- fit.knn$bestTune 
+
+print(fit.knn)
+
+plot(fit.knn)
