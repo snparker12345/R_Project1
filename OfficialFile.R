@@ -626,4 +626,37 @@ cf <- confusionMatrix(as.factor(clase.pred.knn), as.factor(df_kvecinos_test$gend
 
 print(cf)
 
+# sophia multivariante section, ejemplo de continuo- i am wprojwomen to nscontent
+# ns_Talk and ns_wikipedia
 
+# i had 5 variables to test, so I decided to use new_NActDays to compare with new_ns_content because it
+# was the most similar. 
+grid.arrange(ggplot(train_Data, aes(x = new_ns_user, colour = train_Data$gender)) +
+               geom_density(lwd=2, linetype=1), ggplot(train_Data, aes(x = new_ns_userTalk, colour = train_Data$gender)) +
+               geom_density(lwd=2, linetype=1), nrow=1)
+
+# > 0.05
+t.test(new_ns_user ~ train_Data$gender, data = train_Data)
+# > 0.05
+t.test(new_ns_userTalk ~ train_Data$gender, data = train_Data)
+
+grid.arrange(ggplot(train_Data, aes(x = new_ns_content, colour = train_Data$gender)) +
+               geom_density(lwd=2, linetype=1), ggplot(train_Data, aes(x = new_NActDays, colour = train_Data$gender)) +
+               geom_density(lwd=2, linetype=1), nrow=1)
+# < 0.05
+t.test(new_ns_content ~ train_Data$gender, data = train_Data)
+
+# n act days was already tested but i will test it again for comparison
+t.test(new_NActDays ~ train_Data$gender, data = train_Data)
+
+# < 0.05
+# good relationship
+grid.arrange(ggplot(train_Data, aes(x = new_ns_talk, colour = train_Data$gender)) +
+               geom_density(lwd=2, linetype=1), ggplot(train_Data, aes(x = new_ns_wikipedia, colour = train_Data$gender)) +
+               geom_density(lwd=2, linetype=1), nrow=1)
+
+# < 0.05
+t.test(new_ns_talk ~ train_Data$gender, data = train_Data)
+
+# > 0.05
+t.test(new_ns_wikipedia~ train_Data$gender, data = train_Data)
