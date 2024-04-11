@@ -18,6 +18,8 @@ library(cluster)
 library(parameters)
 library(stats)
 library(factoextra)
+library(randomForest)
+library(DALEX)
 
 #Semilla para que nuestro análisis sea reproducible
 set.seed(123)
@@ -660,3 +662,42 @@ t.test(new_ns_talk ~ train_Data$gender, data = train_Data)
 
 # > 0.05
 t.test(new_ns_wikipedia~ train_Data$gender, data = train_Data)
+
+
+# random forest
+rf <- randomForest(as.factor(df_kvecinos_test$gender)~., data=df_kvecinos_test, importance=TRUE,proximity=TRUE) 
+print(rf)
+# what does each line mean
+plot(rf)
+
+str(df_kvecinos_test)
+randomTest2 <- df_kvecinos_test %>%
+  mutate(gender=as.factor(gender)) %>%
+  dplyr::select(pagesWomen_bin,wikiprojWomen_bin,new_NActDays,new_NPages,new_ns_talk,new_ns_userTalk,new_ns_content,new_ns_user,new_ns_wikipedia,NEds,NPcreated,NDays,gender)
+
+str(randomTest2)
+
+levels(randomTest2$gender)
+
+prediction.rf <- predict(rf, randomTest2,type="prob")[,2]
+
+clase.pred.rf=ifelse(prediction.rf>0.5,"2","1")
+cf <- confusionMatrix(as.factor(clase.pred.rf), as.factor(randomTest2$gender),positive="1")
+print(cf)
+#####
+
+#Podemos averiguar la importancia de las variables en el modelo.
+varImp(rf)
+varImpPlot(rf)
+# confused on what this does
+MDSplot(rf, as.factor(df_kvecinos_test$gender),k=2)
+
+explain.rf <- DALEX::explain(model=rf,data=df[,-13],y=df[,-13]=="yes",label="Random Forest")
+new.test <- randomTest2[1,-13]
+predict(explain.rf, new.test)
+new.test
+shap.new <- predict_parts(explainer = explain.rf, 
+                          new_observation = new.test, 
+                          type = "shap",
+                          B = 25)
+plot(shap.new,show_boxplots=FALSE)
