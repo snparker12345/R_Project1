@@ -692,14 +692,22 @@ varImpPlot(rf)
 # confused on what this does
 MDSplot(rf, as.factor(df_kvecinos_test$gender),k=2)
 
+# creates an explainer
 explain.rf <- DALEX::explain(model=rf,data=df_kvecinos_test[,-13],y=df_kvecinos_test[,-13]=="yes",label="Random Forest")
+# selects all 13 variables
 new.test <- randomTest2[1,-13]
+
+# creates a prediction
 predict(explain.rf, new.test)
 
+# prints out the new test
 new.test
+
+# creates a plot of predictions
 shap.new <- predict_parts(explainer = explain.rf, 
                           new_observation = new.test, 
                           type = "shap",
                           B = 25)
+# shows plot
 plot(shap.new,show_boxplots=FALSE)
 
