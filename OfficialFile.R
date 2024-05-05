@@ -69,7 +69,42 @@ train_Data$E_Bpag <-as.factor(train_Data$E_Bpag)
 train_Data$weightIJ<-as.factor(train_Data$weightIJ)
 train_Data$NIJ<-as.factor(train_Data$NIJ)
 
-##### ==== NEW ACTIVE ML CODE 
+##### ==== NEW ACTIVE ML CODE
+
+# Active learning- the learning model queries the user to learn. The user describes the “correct answer” in an edge case to help the model learn.
+# Query strategy- a strategy for deciding which instances to query for labels. Examples are diversity, uncertainty, or representative sampling
+# Steps: 
+#   Start with a small dataset (train)
+# Using the available labeled data, train the first model
+# Predict uncertainty
+# Apply the trained model
+# Use a prediction confidence metric
+# Query
+# Choose cases where the model has low confidence
+# The query strategy selected will be different
+# Label
+# Add labels for instances that the model is unsure about
+# Update model
+# Add annotated data to the training set
+# Using the revised dataset, retrain the model
+# Repeat 2-6
+# 
+# There are two approaches, query synthesis and sampling.
+# Query synthesis is done for a very small dataset. We have a large dataset, so we will use sampling. 
+# Sampling 
+# Done with a large dataset
+# Training set, 5%, test set, 25%, unlabeled pool, 70%
+# Training set is used to initially train the model
+# Approach selects uncertain points from the unlabeled pool, so the query can be recognized by the human
+# 
+# Summary of what i think
+# In an example i saw, someone 
+# We want to see how an important variable defines gender.
+# We should use the important variables from our dataset. 
+# 
+# Links for your reference:
+#   https://www.geeksforgeeks.org/ml-active-learning/
+  
 
 #partition differently for this case
 
